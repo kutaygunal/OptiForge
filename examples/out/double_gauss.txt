@@ -1,0 +1,23 @@
+AI Start Expert  —  Double Gauss
+====================================================
+Spec: EFL=50 mm  FOV=40 deg  F/#=2.8
+
+First-order:
+  EFL             50.0000 mm
+  F/#             2.8000
+  Entrance pupil  17.8571 mm
+  Back focal      61.2952 mm
+  Image height    18.1985 mm
+  Elements        4
+
+Third-order (Seidel) coefficients:
+  S1 spherical        -1.85e-02  (well corrected)
+  S2 coma             5.20e-04  (well corrected)
+  S3 astigmatism      4.34e-02  (well corrected)
+  S4 field curvature  -3.33e-04  (well corrected)
+  S5 distortion       -4.57e-01  (small)
+  Axial color        6.01e-05  (well corrected)
+  Lateral color      -2.30e-03  (well corrected)
+
+Third-order distortion ~ 0.28 %
+CODE V .seq round-trip: OK

@@ -1,0 +1,23 @@
+AI Start Expert  —  Petzval (projector)
+====================================================
+Spec: EFL=50 mm  FOV=15 deg  F/#=2
+
+First-order:
+  EFL             50.0000 mm
+  F/#             2.0000
+  Entrance pupil  25.0000 mm
+  Back focal      55.9855 mm
+  Image height    6.5826 mm
+  Elements        2
+
+Third-order (Seidel) coefficients:
+  S1 spherical        -4.98e-03  (well corrected)
+  S2 coma             -4.93e-03  (well corrected)
+  S3 astigmatism      8.21e-03  (well corrected)
+  S4 field curvature  1.17e-02  (well corrected)
+  S5 distortion       3.86e-03  (well corrected)
+  Axial color        1.07e-02  (well corrected)
+  Lateral color      3.04e-03  (well corrected)
+
+Third-order distortion ~ 0.01 %
+CODE V .seq round-trip: OK

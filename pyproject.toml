@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aistart-expert"
+version = "1.0.0"
+description = "AI Start Expert — local generative starting-point lens design for CODE V (emits .seq files)"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.21",
+    "scipy>=1.7",
+    "matplotlib>=3.4",
+]
+
+[project.optional-dependencies]
+web = ["flask>=2.0"]
+dev = ["pytest>=7"]
+
+[tool.setuptools]
+packages = ["aistart"]
+
+[tool.setuptools.package-data]
+aistart = ["templates/*.html"]
+
+[project.scripts]
+aistart = "aistart.cli:main"
