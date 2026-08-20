@@ -1,0 +1,677 @@
+<title>OptiForge Specification Reference</title>
+<style>
+  /* ------------------------------------------------------------------
+     Palette. Light is the base; dark mirrors the OptiForge app itself.
+     Every colour is a token so both themes resolve as a complete set.
+     ------------------------------------------------------------------ */
+  :root{
+    --ground:#f5f7fa;      /* cool off-white, biased toward the accent   */
+    --panel:#ffffff;
+    --sunk:#eef2f7;
+    --line:#dbe2ec;
+    --line-strong:#c3cede;
+    --txt:#131a24;
+    --txt-soft:#3d4a5c;
+    --mut:#5b6675;
+    --accent:#1f6feb;
+    --accent-soft:#e7f0fd;
+    --good:#1a7f37;
+    --warn:#9a6700;
+    --crit:#cf222e;
+    --glass:#cfe0f0;
+    --glass-edge:#24406b;
+
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,ui-serif,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+
+    --measure:68ch;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#0d1117;
+      --panel:#161b22;
+      --sunk:#11161d;
+      --line:#2a3242;
+      --line-strong:#3b4557;
+      --txt:#e6edf3;
+      --txt-soft:#c4ced9;
+      --mut:#8b949e;
+      --accent:#4f9cf9;
+      --accent-soft:#15243a;
+      --good:#7ee787;
+      --warn:#d29922;
+      --crit:#f85149;
+      --glass:#26364b;
+      --glass-edge:#7aa7d9;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0d1117;
+    --panel:#161b22;
+    --sunk:#11161d;
+    --line:#2a3242;
+    --line-strong:#3b4557;
+    --txt:#e6edf3;
+    --txt-soft:#c4ced9;
+    --mut:#8b949e;
+    --accent:#4f9cf9;
+    --accent-soft:#15243a;
+    --good:#7ee787;
+    --warn:#d29922;
+    --crit:#f85149;
+    --glass:#26364b;
+    --glass-edge:#7aa7d9;
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+  body{
+    margin:0;
+    background:var(--ground);
+    color:var(--txt);
+    font:16px/1.65 var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .shell{max-width:1180px;margin:0 auto;padding:0 28px 96px}
+
+  /* ---------- masthead ---------- */
+  header.masthead{
+    border-bottom:1px solid var(--line-strong);
+    padding:52px 0 26px;
+    margin-bottom:38px;
+  }
+  .eyebrow{
+    font:500 11px/1 var(--mono);
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--mut);
+    margin-bottom:16px;
+  }
+  h1{
+    font:600 40px/1.12 var(--serif);
+    margin:0 0 14px;
+    letter-spacing:-.01em;
+    text-wrap:balance;
+  }
+  .standfirst{
+    font-size:17px;
+    color:var(--txt-soft);
+    max-width:var(--measure);
+    margin:0;
+  }
+
+  /* ---------- two-column body ---------- */
+  .layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:52px;align-items:start}
+  @media (max-width:900px){.layout{grid-template-columns:1fr;gap:28px}}
+
+  nav.index{position:sticky;top:26px}
+  @media (max-width:900px){
+    nav.index{position:static;border:1px solid var(--line);padding:18px 20px;background:var(--panel)}
+  }
+  nav.index h2{
+    font:500 11px/1 var(--mono);
+    letter-spacing:.16em;text-transform:uppercase;color:var(--mut);
+    margin:0 0 14px;
+  }
+  nav.index ol{list-style:none;margin:0 0 22px;padding:0;display:flex;flex-direction:column;gap:7px}
+  nav.index a{
+    color:var(--txt-soft);text-decoration:none;font-size:14px;
+    border-left:1px solid var(--line);padding-left:12px;display:block;
+  }
+  nav.index a:hover,nav.index a:focus-visible{color:var(--accent);border-left-color:var(--accent)}
+  nav.index .grouplabel{
+    font:500 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+    color:var(--mut);margin:0 0 9px;padding-left:13px;
+  }
+
+  /* ---------- figure ---------- */
+  figure.diagram{
+    margin:0 0 52px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:22px 24px 18px;
+  }
+  figure.diagram svg{width:100%;height:auto;display:block}
+  figcaption{
+    font-size:13.5px;color:var(--mut);margin-top:14px;
+    border-top:1px solid var(--line);padding-top:12px;
+  }
+  .ray-marg{stroke:var(--accent);stroke-width:1.4;fill:none}
+  .ray-chief{stroke:var(--crit);stroke-width:1.4;fill:none}
+  .glassbody{fill:var(--glass);stroke:var(--glass-edge);stroke-width:1.2}
+  .axis{stroke:var(--line-strong);stroke-width:1;stroke-dasharray:6 5}
+  .dim{stroke:var(--mut);stroke-width:1}
+  .thin{stroke:var(--line-strong);stroke-width:.8;stroke-dasharray:3 3}
+  .plane{stroke:var(--txt);stroke-width:2}
+  .stopline{stroke:var(--warn);stroke-width:1.4;stroke-dasharray:5 4}
+  text.lbl{font:500 12px var(--mono);fill:var(--mut)}
+  text.lbl-em{font:500 12px var(--mono);fill:var(--txt)}
+
+  /* ---------- sections ---------- */
+  section.group{margin-bottom:64px;scroll-margin-top:24px}
+  .grouphead{border-bottom:2px solid var(--txt);padding-bottom:10px;margin-bottom:8px}
+  .grouphead h2{font:600 26px/1.2 var(--serif);margin:0}
+  .groupnote{color:var(--mut);font-size:14.5px;max-width:var(--measure);margin:14px 0 34px}
+
+  article.field{
+    padding:30px 0;
+    border-bottom:1px solid var(--line);
+    scroll-margin-top:24px;
+  }
+  article.field:last-child{border-bottom:0}
+  article.field h3{
+    font:600 20px/1.3 var(--serif);
+    margin:0 0 16px;
+  }
+  article.field p{max-width:var(--measure);margin:0 0 14px;color:var(--txt-soft)}
+  article.field p:last-child{margin-bottom:0}
+
+  /* spec strip: the control's hard facts, scannable */
+  dl.strip{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    margin:0 0 20px;
+  }
+  dl.strip > div{background:var(--panel);padding:9px 12px}
+  dl.strip dt{
+    font:500 10px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+    color:var(--mut);margin-bottom:3px;
+  }
+  dl.strip dd{margin:0;font:500 13.5px/1.4 var(--mono);color:var(--txt);font-variant-numeric:tabular-nums}
+
+  .tech{
+    background:var(--sunk);
+    border-left:2px solid var(--accent);
+    padding:14px 18px;
+    margin:18px 0 0;
+    max-width:var(--measure);
+  }
+  .tech .tag{
+    font:500 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);display:block;margin-bottom:8px;
+  }
+  .tech p{font-size:14.5px;margin:0 0 10px;color:var(--txt-soft)}
+  .tech p:last-child{margin-bottom:0}
+
+  code,.k{font:500 13.5px var(--mono);background:var(--sunk);padding:1px 5px;border:1px solid var(--line)}
+  .tech code,.tech .k{background:var(--panel)}
+  b,strong{color:var(--txt);font-weight:600}
+
+  /* ---------- tables ---------- */
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);margin:22px 0 0;background:var(--panel)}
+  table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+  th,td{padding:9px 14px;text-align:left;border-bottom:1px solid var(--line)}
+  thead th{
+    font:500 10px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+    color:var(--mut);background:var(--sunk);
+  }
+  tbody tr:last-child td{border-bottom:0}
+  td.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+  td.form{font-weight:600}
+
+  ul.plain{max-width:var(--measure);padding-left:20px;margin:0 0 14px;color:var(--txt-soft)}
+  ul.plain li{margin-bottom:7px}
+
+  footer.foot{
+    margin-top:70px;padding-top:22px;border-top:1px solid var(--line-strong);
+    color:var(--mut);font-size:13px;display:flex;gap:18px;flex-wrap:wrap;
+  }
+  a{color:var(--accent)}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="shell">
+
+<header class="masthead">
+  <div class="eyebrow">OptiForge · Field guide</div>
+  <h1>Specification Reference</h1>
+  <p class="standfirst">Every input on the OptiForge specification panel — what it means, what to type
+  into it, and what it does to the designs you get back. Grouped exactly as the panel is.</p>
+</header>
+
+<div class="layout">
+
+  <nav class="index" aria-label="Contents">
+    <h2>Contents</h2>
+    <p class="grouplabel">Basic lens properties</p>
+    <ol>
+      <li><a href="#units">Desired System Units</a></li>
+      <li><a href="#efl">Effective Focal Length</a></li>
+      <li><a href="#pupil">Pupil Specification</a></li>
+      <li><a href="#field">Semi-Field Angle</a></li>
+      <li><a href="#wl">Wavelength Range</a></li>
+      <li><a href="#form">Starting lens form</a></li>
+    </ol>
+    <p class="grouplabel">Optional lens properties</p>
+    <ol>
+      <li><a href="#package">Maximum Package Length</a></li>
+      <li><a href="#clearance">Minimum Image Clearance</a></li>
+      <li><a href="#distortion">Maximum Distortion</a></li>
+      <li><a href="#cra">Chief Ray Angle at Image</a></li>
+      <li><a href="#elements">Number of Elements</a></li>
+    </ol>
+    <p class="grouplabel">OptiForge options</p>
+    <ol>
+      <li><a href="#nsys">Number of Desired Systems</a></li>
+      <li><a href="#basename">Base File Name</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+  <!-- ================= FIGURE ================= -->
+  <figure class="diagram">
+    <svg viewBox="0 0 780 352" role="img"
+         aria-label="Cross-section of a lens showing entrance pupil diameter, semi-field angle, package length, image clearance and chief ray angle.">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0,1 L9,5 L0,9 z" fill="currentColor"/>
+        </marker>
+        <marker id="ah2" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M9,1 L0,5 L9,9 z" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <!-- optical axis -->
+      <line class="axis" x1="60" y1="200" x2="716" y2="200"/>
+
+      <!-- glass: two converging (biconvex) groups -->
+      <path class="glassbody" d="M228,142 Q202,200 228,258 Q254,200 228,142 Z"/>
+      <path class="glassbody" d="M416,154 Q396,200 416,246 Q436,200 416,154 Z"/>
+
+      <!-- stop + image plane -->
+      <line class="stopline" x1="330" y1="152" x2="330" y2="248"/>
+      <line class="plane" x1="640" y1="118" x2="640" y2="282"/>
+
+      <!-- marginal rays: the axial cone, entering at EPD/2 -->
+      <path class="ray-marg" d="M60,145 L228,145 L416,165 L640,200"/>
+      <path class="ray-marg" d="M60,255 L228,255 L416,235 L640,200"/>
+
+      <!-- chief ray: enters at the field angle, crosses the axis at the stop -->
+      <path class="ray-chief" d="M60,104 L228,168 L416,227 L640,258"/>
+
+      <!-- entrance pupil diameter -->
+      <g color="var(--mut)">
+        <line class="dim" x1="170" y1="145" x2="170" y2="255" marker-start="url(#ah2)" marker-end="url(#ah)"/>
+      </g>
+      <text class="lbl-em" x="160" y="190" text-anchor="end">EPD</text>
+
+      <!-- semi-field angle, against a horizontal reference -->
+      <line class="thin" x1="140" y1="134" x2="236" y2="134"/>
+      <path d="M200,134 A60,60 0 0,1 196,156" fill="none" stroke="var(--crit)" stroke-width="1.3"/>
+      <text class="lbl" x="212" y="126">semi-field angle</text>
+
+      <!-- chief ray angle at the image -->
+      <line class="thin" x1="556" y1="258" x2="700" y2="258"/>
+      <path d="M570,258 A70,70 0 0,1 571,248" fill="none" stroke="var(--crit)" stroke-width="1.3"/>
+      <text class="lbl" x="545" y="276" text-anchor="end">chief ray angle</text>
+
+      <!-- image height -->
+      <g color="var(--mut)">
+        <line class="dim" x1="658" y1="200" x2="658" y2="258" marker-end="url(#ah)"/>
+      </g>
+      <text class="lbl" x="666" y="236">image height</text>
+
+      <!-- image clearance: last surface to image plane -->
+      <g color="var(--mut)">
+        <line class="dim" x1="426" y1="304" x2="640" y2="304" marker-start="url(#ah2)" marker-end="url(#ah)"/>
+      </g>
+      <line class="thin" x1="426" y1="246" x2="426" y2="306"/>
+      <text class="lbl" x="533" y="297" text-anchor="middle">image clearance</text>
+
+      <!-- package length: front vertex to image plane -->
+      <g color="var(--mut)">
+        <line class="dim" x1="215" y1="330" x2="640" y2="330" marker-start="url(#ah2)" marker-end="url(#ah)"/>
+      </g>
+      <line class="thin" x1="215" y1="258" x2="215" y2="332"/>
+      <line class="thin" x1="640" y1="284" x2="640" y2="332"/>
+      <text class="lbl" x="427" y="323" text-anchor="middle">package length</text>
+
+      <!-- callouts -->
+      <text class="lbl" x="330" y="144" text-anchor="middle" fill="var(--warn)">stop</text>
+      <text class="lbl-em" x="640" y="110" text-anchor="middle">image plane</text>
+      <text class="lbl" x="62" y="92" fill="var(--crit)">chief ray</text>
+      <text class="lbl" x="66" y="176" fill="var(--accent)">marginal ray</text>
+    </svg>
+    <figcaption>The quantities most of these inputs refer to. The <b>marginal ray</b> is the edge of the
+    axial cone — it enters at half the entrance pupil diameter. The <b>chief ray</b> comes in at the
+    semi-field angle and passes through the centre of the stop; where it lands sets the image height,
+    and the angle it makes with the axis there is the chief ray angle.</figcaption>
+  </figure>
+
+  <!-- ================= GROUP 1 ================= -->
+  <section class="group" id="basic">
+    <div class="grouphead"><h2>Basic lens properties</h2></div>
+    <p class="groupnote">The five things every lens must be told, plus the choice of which classical
+    forms to search. These are always applied — there is no switching them off, and every system you
+    get back will match them.</p>
+
+    <article class="field" id="units">
+      <h3>Desired System Units</h3>
+      <dl class="strip">
+        <div><dt>Control</dt><dd>Millimeters · Centimeters · Inches</dd></div>
+        <div><dt>Default</dt><dd>Millimeters</dd></div>
+        <div><dt>Applies to</dt><dd>every length</dd></div>
+      </dl>
+      <p>The unit for every length you type and every length reported back: focal length, package
+      length, image clearance, spot diameter, and the radii and thicknesses in the output file.</p>
+      <p>Changing this does <b>not</b> rescale an existing specification — it changes how the numbers
+      in the boxes are read. An entry of <code>35</code> means 35&nbsp;mm or 35&nbsp;inches depending
+      on what is selected here.</p>
+      <div class="tech">
+        <span class="tag">Technical</span>
+        <p>Written into the output file as its dimension record — <code>DIM MM</code>,
+        <code>CM</code> or <code>IN</code> — so the receiving program interprets the prescription
+        correctly. Wavelengths are the exception: they are always in nanometres, whatever is selected
+        here.</p>
+      </div>
+    </article>
+
+    <article class="field" id="efl">
+      <h3>Effective Focal Length</h3>
+      <dl class="strip">
+        <div><dt>Control</dt><dd>number &gt; 0</dd></div>
+        <div><dt>Unit</dt><dd>system units</dd></div>
+        <div><dt>Default</dt><dd>35</dd></div>
+      </dl>
+      <p>How strongly the lens converges light, and with the field angle it sets how big the image is.
+      This is the single number that fixes the overall scale of every design you get back.</p>
+      <p>Every system in the results will have exactly this focal length — you will see the same value
+      repeated down the column. It is not something the search trades away.</p>
+      <div class="tech">
+        <span class="tag">Technical</span>
+        <p>Held exactly rather than approached. On every evaluation the design is scaled uniformly —
+        all radii and all air spaces multiplied by one factor — which moves the focal length to the
+        target without changing the lens's shape, and the image plane is then refocused. Because focal
+        length scales linearly with a uniform scaling, this is exact, not iterative.</p>
+        <p>One consequence worth knowing: aberrations scale with the lens, so doubling the focal
+        length at a fixed F/number roughly doubles the spot diameter reported in the results.</p>
+      </div>
+    </article>
+
+    <article class="field" id="pupil">
+      <h3>Pupil Specification</h3>
+      <dl class="strip">
+        <div><dt>Control</dt><dd>F/Number · EPD · NA</dd></div>
+        <div><dt>Unit</dt><dd>ratio · length · ratio</dd></div>
+        <div><dt>Default</dt><dd>F/Number 2.0</dd></div>
+      </dl>
+      <p>How much light the lens collects — its speed. Pick whichever of the three ways you normally
+      think in, and type the value in the box underneath:</p>
+      <ul class="plain">
+        <li><b>F/Number</b> — focal length divided by pupil diameter. Smaller is faster: F/2 collects
+        four times the light of F/4.</li>
+        <li><b>Entrance Pupil Diameter</b> — the working diameter of the beam entering the lens,
+        in system units.</li>
+        <li><b>Numerical Aperture</b> — the half-angle of the cone, the usual measure for
+        microscope objectives and fibre work.</li>
+      </ul>
+      <p>They are three descriptions of one thing, so setting any one fixes the other two. Speed is
+      the input that costs you the most: a faster lens needs more elements and more careful
+      correction to reach the same spot size.</p>
+      <div class="tech">
+        <span class="tag">Technical</span>
+        <p>Converted internally as <code>EPD = EFL / (F/#)</code> and <code>NA = 1 / (2 · F/#)</code>.
+        The entrance pupil is an object-space quantity: the marginal ray arrives at the first surface
+        at a height of EPD/2. It is not the diameter of the stop — the stop's size follows from
+        wherever the design puts it.</p>
+        <p>For a microscope objective the value is read as the <b>object-side</b> NA instead, and the
+        output uses an object numerical aperture record rather than an entrance pupil diameter.</p>
+      </div>
+    </article>
+
+    <article class="field" id="field">
+      <h3>Semi-Field Angle</h3>
+      <dl class="strip">
+        <div><dt>Control</dt><dd>number, 0–90</dd></div>
+        <div><dt>Unit</dt><dd>degrees</dd></div>
+        <div><dt>Default</dt><dd>30</dd></div>
+      </dl>
+      <p>How wide a scene the lens has to cover, measured from the axis out to the corner — <b>half</b>
+      the total field of view. Entering 30 asks for a 60° full field.</p>
+      <p>This is the other half of the image-size calculation: the image height at the corner is the
+      focal length times the tangent of this angle. It is also what makes a design hard — the
+      off-axis aberrations grow quickly with field, so a wide-angle request will push the search
+      toward retrofocus forms and more elements.</p>
+      <div class="tech">
+        <span class="tag">Technical</span>
+        <p>The chief ray is traced at this angle and forced through the centre of the stop. Field
+        aberrations scale with powers of it: coma with the field, astigmatism and field curvature with
+        its square, distortion with its cube. The spot diameter in the results is averaged over three
+        zones — on axis, 70% of the field, and the full corner.</p>
+      </div>
+    </article>
+
+    <article class="field" id="wl">
+      <h3>Wavelength Range — Long and Short</h3>
+      <dl class="strip">
+        <div><dt>Control</dt><dd>two numbers</dd></div>
+        <div><dt>Unit</dt><dd>nanometres</dd></div>
+        <div><dt>Default</dt><dd>650 long · 450 short</dd></div>
+      </dl>
+      <p>The band of light the lens has to work over — the red and blue ends of your waveband.
+      450–650&nbsp;nm is a normal visible request; a laser system might use a band only a few
+      nanometres wide, and a monochrome sensor something narrower than the default.</p>
+      <p>This directly controls how hard the search works on colour. A wide band forces glass pairings
+      that cancel chromatic error and usually costs an element; a narrow band frees the design to
+      spend its effort elsewhere.</p>
+      <div class="tech">
+        <span class="tag">Technical</span>
+        <p>Three wavelengths are written to the output — long, short, and the midpoint between them —
+        with the midpoint used as the reference for first-order calculations. Glass dispersion is
+        reconstructed for the band you asked for rather than assumed, so the colour correction
+        genuinely tracks these two numbers.</p>
+        <p>Entering them the wrong way round is harmless; they are swapped automatically.</p>
+      </div>
+    </article>
+
+    <article class="field" id="form">
+      <h3>Starting lens form</h3>
+      <dl class="strip">
+        <div><dt>Control</dt><dd>Auto, or one named form</dd></div>
+        <div><dt>Default</dt><dd>Auto (search all forms)</dd></div>
+      </dl>
+      <p>Which classical lens types the search is allowed to build from. Left on <b>Auto</b> it picks
+      the form that best suits your operating point, then tries the others as well — that is where the
+      variety in the results table comes from. Choose a named form to restrict the whole search to
+      that one lineage, which is what you want when you already know the shape you're after.</p>
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr><th>Form</th><th>Suited to</th><th class="num">Semi-field</th><th class="num">F/#</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="form">Camera / double Gauss</td><td>General photography, fast and wide</td><td class="num">30–60°</td><td class="num">1.4–4</td></tr>
+            <tr><td class="form">Cooke triplet</td><td>Simple, cheap, few elements</td><td class="num">30–55°</td><td class="num">3.5–8</td></tr>
+            <tr><td class="form">Telephoto</td><td>Long focal length in a short barrel</td><td class="num">10–35°</td><td class="num">2.8–5.6</td></tr>
+            <tr><td class="form">Retrofocus</td><td>Wide angle needing a long back focus</td><td class="num">55–110°</td><td class="num">2.8–5.6</td></tr>
+            <tr><td class="form">Petzval</td><td>Fast at a small field; projectors, relays</td><td class="num">5–25°</td><td class="num">1.4–2.8</td></tr>
+            <tr><td class="form">Collimator</td><td>Narrow field, large aperture</td><td class="num">0.5–8°</td><td class="num">1.4–3</td></tr>
+            <tr><td class="form">Microscope objective</td><td>Finite conjugate, high NA</td><td class="num">0–2°</td><td class="num">1–4</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tech">
+        <span class="tag">Technical</span>
+        <p>These ranges are comfort zones, not limits — a request outside them still works, it just
+        means that form starts further from home. On Auto, forms are tried in order of how far your
+        operating point sits outside each one's zone.</p>
+        <p>Selecting <b>Microscope objective</b> switches the whole calculation to a finite conjugate
+        and reveals two more boxes: <b>Working distance</b>, the object-to-first-surface distance that
+        the design is scaled to, and <b>Object field height</b>, how much of the specimen is imaged.
+        Focal length is not held in this mode — the working distance takes its place.</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ================= GROUP 2 ================= -->
+  <section class="group" id="optional">
+    <div class="grouphead"><h2>Optional lens properties</h2></div>
+    <p class="groupnote">Constraints from the rest of the product — the housing, the sensor, the
+    budget. Each has a checkbox: <b>unticked, it is ignored completely</b> and contributes nothing to
+    the search. Ticked, it becomes a target the designs are pushed toward and then measured against,
+    and its column in the results is shaded green where there is comfortable margin and red where the
+    limit is being pressed. A system that cannot meet every goal is still shown, flagged rather than
+    hidden.</p>
+
+    <article class="field" id="package">
+      <h3>Maximum Package Length</h3>
+      <dl class="strip">
+        <div><dt>Control</dt><dd>checkbox + number</dd></div>
+        <div><dt>Unit</dt><dd>system units</dd></div>
+        <div><dt>Default</dt><dd>on · 250</dd></div>
+      </dl>
+      <p>How long the lens is allowed to be overall, front glass to sensor. This is the housing
+      constraint — if the lens has to fit a 60&nbsp;mm barrel, put 60 here.</p>
+      <p>Tightening it is one of the most effective ways to change the character of the results: a
+      short limit pushes the search toward telephoto-style forms that fold a long focal length into a
+      short tube.</p>
+      <div class="tech">
+        <span class="tag">Technical</span>
+        <p>Measured from the vertex of the first surface to the image plane, so it includes the image
+        clearance and excludes the object distance.</p>
+      </div>
+    </article>
+
+    <article class="field" id="clearance">
+      <h3>Minimum Image Clearance</h3>
+      <dl class="strip">
+        <div><dt>Control</dt><dd>checkbox + number</dd></div>
+        <div><dt>Unit</dt><dd>system units</dd></div>
+        <div><dt>Default</dt><dd>on · 22</dd></div>
+      </dl>
+      <p>The smallest acceptable gap between the last glass surface and the image plane. This is the
+      room you need for everything that lives in front of the sensor — a filter, a cover glass, a
+      prism, a shutter, or simply the mechanics of mounting.</p>
+      <p>Ask for a lot of it and you are effectively asking for a retrofocus design, since pushing the
+      focus far behind the last element is exactly what that form does.</p>
+      <div class="tech">
+        <span class="tag">Technical</span>
+        <p>The final air space of the focused system. The image plane is placed at best focus on every
+        evaluation, so this is the true back working distance, not a nominal figure.</p>
+      </div>
+    </article>
+
+    <article class="field" id="distortion">
+      <h3>Maximum Distortion</h3>
+      <dl class="strip">
+        <div><dt>Control</dt><dd>checkbox + number</dd></div>
+        <div><dt>Unit</dt><dd>percent, ±</dd></div>
+        <div><dt>Default</dt><dd>on · 1.0</dd></div>
+      </dl>
+      <p>How much straight lines are allowed to bow at the edge of the frame. Entering 1 permits the
+      corner of the image to sit 1% away from where perfect geometry would put it.</p>
+      <p>A useful sense of scale: measurement and machine-vision optics are usually held below a
+      fraction of a percent, general photography tolerates a few percent, and a wide-angle lens left
+      unconstrained will happily produce much more.</p>
+      <div class="tech">
+        <span class="tag">Technical</span>
+        <p>Third-order distortion at the corner of the field, expressed as a percentage of the ideal
+        image height. It is a pure ratio — independent of focal length — so the number means the same
+        thing whatever scale of lens you are designing.</p>
+      </div>
+    </article>
+
+    <article class="field" id="cra">
+      <h3>Chief Ray Angle at Image at Maximum Field</h3>
+      <dl class="strip">
+        <div><dt>Control</dt><dd>checkbox + target + tolerance</dd></div>
+        <div><dt>Unit</dt><dd>degrees</dd></div>
+        <div><dt>Default</dt><dd>off · 0 ± 10</dd></div>
+      </dl>
+      <p>The angle at which light arrives at the corner of the sensor. Digital sensors have micro-lenses
+      over each pixel, and they are built expecting light within a particular cone — feed them a steeper
+      angle and the corners lose brightness and pick up colour shading. Sensor datasheets quote the
+      angle they want; put it in <b>Target</b> and the allowed spread in <b>Tolerance</b>.</p>
+      <p>A target near zero asks for a telecentric design, where the corner rays arrive square to the
+      sensor. That is demanding, and usually costs both elements and length.</p>
+      <p>This goal bites harder than any other. Left off, a fast 30° design typically lands somewhere
+      between 25° and 33°; switch it on with a target of 10° and a tolerance of 4° and the same search
+      returns designs at about 14° — right at the edge of the band you allowed.</p>
+      <div class="tech">
+        <span class="tag">Technical</span>
+        <p>Measured as the angle the chief ray makes with the axis in the final space, at the full
+        field. Only the excess beyond <code>target ± tolerance</code> is penalised — anywhere inside
+        the band is treated as equally acceptable.</p>
+      </div>
+    </article>
+
+    <article class="field" id="elements">
+      <h3>Minimum / Maximum Number of Elements</h3>
+      <dl class="strip">
+        <div><dt>Control</dt><dd>two checkboxes + numbers</dd></div>
+        <div><dt>Unit</dt><dd>count</dd></div>
+        <div><dt>Default</dt><dd>on · 4 to 8</dd></div>
+      </dl>
+      <p>How complex the lens is allowed to be. Element count is the main driver of what a lens costs
+      to make, so this is the commercial constraint as much as the optical one.</p>
+      <p>The two ends do different jobs. The <b>maximum</b> keeps the result affordable. The
+      <b>minimum</b> is the more interesting one: raising it tells the search it is allowed to spend
+      glass, and it will use the extra elements to correct harder — so if your results look poor,
+      raising the minimum is often the first thing to try.</p>
+      <p>A cemented doublet counts as <b>two</b> elements, since it is two pieces of glass with two
+      different refractive indices.</p>
+      <div class="tech">
+        <span class="tag">Technical</span>
+        <p>Unlike the other goals this one filters before it scores: candidates outside the range are
+        discarded before any optimization, so the range decides which structures are ever attempted.
+        That is why widening it changes the character of the results rather than just relabelling
+        them.</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ================= GROUP 3 ================= -->
+  <section class="group" id="options">
+    <div class="grouphead"><h2>OptiForge options</h2></div>
+    <p class="groupnote">How much work to do, and what to call the results. Neither of these changes
+    the optics.</p>
+
+    <article class="field" id="nsys">
+      <h3>Number of Desired Systems</h3>
+      <dl class="strip">
+        <div><dt>Control</dt><dd>number, 1–20</dd></div>
+        <div><dt>Default</dt><dd>10</dd></div>
+      </dl>
+      <p>How many designs to return in the summary table. They come back ranked, best first, so
+      asking for more does not dilute the top of the list — it just shows you further down it.</p>
+      <p>Ten is a good working number: enough to see genuinely different approaches to the same
+      specification, few enough to compare by eye.</p>
+      <div class="tech">
+        <span class="tag">Technical</span>
+        <p>The search is not scaled down for a small request — the same candidates are explored either
+        way, and you simply get fewer of the survivors. Asking for 4 therefore takes about as long as
+        asking for 10. Near-identical designs are removed before ranking, so the systems you see are
+        meaningfully different from one another rather than small variations on one answer.</p>
+      </div>
+    </article>
+
+    <article class="field" id="basename">
+      <h3>Base File Name</h3>
+      <dl class="strip">
+        <div><dt>Control</dt><dd>text</dd></div>
+        <div><dt>Default</dt><dd>Camera</dd></div>
+      </dl>
+      <p>The stem for naming the generated systems. Entering <code>Camera</code> gives you
+      <code>Camera_01</code> through <code>Camera_10</code>, numbered in rank order — that is the name
+      in the results table, the name of the file you download, and the title recorded inside the file
+      itself.</p>
+      <p>Worth setting to something descriptive when you are comparing several runs, so the downloads
+      don't collide in your folder.</p>
+    </article>
+  </section>
+
+  <footer class="foot">
+    <span>OptiForge — generative starting-point lens design</span>
+    <span>Runs entirely on your machine</span>
+  </footer>
+
+  </main>
+</div>
+</div>
