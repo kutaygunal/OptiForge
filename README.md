@@ -19,6 +19,8 @@ sensible starting points to choose from, in seconds.
 - **On-premise:** runs entirely locally with **no internet** — suitable for secure /
   offline engineering environments.
 
+![OptiForge](assets/ui_screenshot.png)
+
 > Not one answer, a *population*: the generator crosses classical forms with structural
 > moves (add a field flattener, split a cemented doublet, drop an element, substitute
 > glass) and randomised restarts, optimizes each against your goals, discards the
