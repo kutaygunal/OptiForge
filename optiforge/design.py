@@ -1,4 +1,4 @@
-"""Data model for an optical design (a CODE V lens sequence in memory)."""
+"""Data model for an optical design (a lens sequence in memory)."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field

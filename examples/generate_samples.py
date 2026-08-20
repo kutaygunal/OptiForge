@@ -1,11 +1,11 @@
 """Generate a sample starting-point .seq for every lens form.
 
 Run:  python examples/generate_samples.py
-Writes CODE V .seq files + layout images + a text report into examples/.
+Writes .seq files + layout images + a text report into examples/.
 """
 import os, sys, math
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from aistart import generate, Spec, report
+from optiforge import generate, Spec, report
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
 os.makedirs(OUT, exist_ok=True)

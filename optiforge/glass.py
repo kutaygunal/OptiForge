@@ -1,8 +1,8 @@
-"""Optical glass catalog subset (Schott) used for CODE V starting-point designs.
+"""Optical glass catalog subset (Schott) used for starting-point designs.
 
 Each entry stores the d-line refractive index and the Abbe number so the local
 paraxial / third-order engine can evaluate both monochromatic and chromatic
-performance. The NAME here is the CODE V glass string, e.g. "NBK7_SCHOTT".
+performance. The NAME here is the glass catalog string, e.g. "NBK7_SCHOTT".
 """
 from __future__ import annotations
 
@@ -55,10 +55,10 @@ class Glass:
 
 
 def get(code: str) -> Glass:
-    """Return a Glass for a CODE V glass string (case-insensitive)."""
+    """Return a Glass for a glass catalog string (case-insensitive)."""
     key = code.strip().upper()
     if key not in CATALOG:
-        raise KeyError(f"Unknown glass '{code}'. Add it to aistart/glass.py CATALOG.")
+        raise KeyError(f"Unknown glass '{code}'. Add it to optiforge/glass.py CATALOG.")
     nd, vd = CATALOG[key]
     return Glass(key, nd, vd)
 
@@ -69,3 +69,56 @@ def index(code: str) -> float:
 
 def abbe(code: str) -> float:
     return get(code).vd
+
+
+# ---------------------------------------------------------------------------
+# Dispersion model
+# ---------------------------------------------------------------------------
+# The catalog stores only (nd, Vd), which is exactly two pieces of information,
+# so the dispersion curve is reconstructed with a two-term Cauchy law
+#     n(lam) = A + B / lam^2        (lam in micrometers)
+# fitted so that n(lam_d) = nd and n(lam_F) - n(lam_C) = (nd - 1) / Vd.
+# That is the standard first-order reconstruction and is accurate enough for
+# the paraxial / third-order starting-point engine.  It lets the user's own
+# wavelength range (the "Short"/"Long" fields of the dialog) drive the
+# chromatic balance instead of the fixed F/d/C lines.
+LAM_D = 0.5875618   # d line   [um]
+LAM_F = 0.4861327   # F line   [um]
+LAM_C = 0.6562725   # C line   [um]
+
+
+def cauchy(code: str) -> tuple:
+    """Return the (A, B) Cauchy coefficients for a catalog glass."""
+    g = get(code)
+    dn = (g.nd - 1.0) / g.vd if g.vd else 0.0
+    B = dn / (1.0 / LAM_F ** 2 - 1.0 / LAM_C ** 2)
+    A = g.nd - B / LAM_D ** 2
+    return A, B
+
+
+def index_at(code: str, wl_nm: float) -> float:
+    """Refractive index of `code` at a wavelength given in nanometres."""
+    if wl_nm is None or wl_nm <= 0:
+        return index(code)
+    A, B = cauchy(code)
+    lam = wl_nm / 1000.0
+    return A + B / (lam * lam)
+
+
+def v_number(code: str, wl_short: float, wl_long: float,
+             wl_ref: float = None) -> float:
+    """Effective Abbe number over the user's own wavelength range.
+
+    V = (n_ref - 1) / (n_short - n_long).  Falls back to the catalog Vd when
+    the range is degenerate.
+    """
+    if not wl_short or not wl_long or abs(wl_short - wl_long) < 1e-6:
+        return abbe(code)
+    ref = wl_ref if wl_ref else 0.5 * (wl_short + wl_long)
+    ns = index_at(code, wl_short)
+    nl = index_at(code, wl_long)
+    nr = index_at(code, ref)
+    denom = ns - nl
+    if abs(denom) < 1e-9:
+        return abbe(code)
+    return (nr - 1.0) / denom

@@ -1,7 +1,7 @@
-"""CODE V .seq validator.
+"""Lens sequence (.seq) validator.
 
-Parses a CODE V lens-sequence file with the same rules as the rayoptics
-"cmdproc" reader (which reads real CODE V .seq files), so the generator's
+Parses a lens-sequence file with the same rules as the rayoptics
+"cmdproc" reader (which reads real lens sequence (.seq) files), so the generator's
 output can be round-trip validated.  It reconstructs the Design from the file
 and checks it against the in-memory model (geometry, EFL, F/#).
 """
@@ -24,10 +24,16 @@ def _isnum(t):
 
 
 def tokenize(line: str) -> List[str]:
-    tkns = re.findall(r"[^'\"]\S*|\".+?\"|'.+?'", line)
+    """Split a command line into tokens, honouring quoted strings.
+
+    Quoted runs stay whole (and lose their quotes); everything else splits on
+    whitespace.  sequence titles are quoted, so `TIT 'Camera_01'` has to come
+    back as ["TIT", "Camera_01"].
+    """
+    tkns = re.findall(r"'[^']*'|\"[^\"]*\"|\S+", line)
     out = []
     for t in tkns:
-        if t[:1] in ('"', "'"):
+        if len(t) >= 2 and t[0] == t[-1] and t[0] in ('"', "'"):
             out.append(t[1:-1])
         else:
             out.append(t)
@@ -58,7 +64,7 @@ class SeqParse:
 
 
 def parse_seq(text: str) -> SeqParse:
-    """Parse CODE V .seq text and reconstruct the Design."""
+    """Parse .seq text and reconstruct the Design."""
     r = SeqParse()
     radius: List[float] = [0.0]     # object surface (plane)
     thick: List[float] = []

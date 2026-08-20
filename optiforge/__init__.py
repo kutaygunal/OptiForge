@@ -1,12 +1,12 @@
-"""AI Start Expert — generative starting-point lens design for CODE V.
+"""OptiForge — generative starting-point lens design.
 
-Generates a viable first-pass lens design (as a CODE V .seq file) from a small
+Generates a viable first-pass lens design (as a lens sequence (.seq) file) from a small
 set of specifications (focal length, field of view, aperture), entirely
 on-premise.
 """
 from .specs import Spec
 from .generator import generate, Result
 from .catalog import CATALOG, get as get_prototype
-from . import codevexport
+from . import seqexport
 
 __version__ = "1.0.0"

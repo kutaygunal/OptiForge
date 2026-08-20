@@ -1,7 +1,7 @@
 """Tests for spec parsing and aperture/field conversion."""
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from aistart.specs import Spec
+from optiforge.specs import Spec
 
 
 def test_fno_conversion():

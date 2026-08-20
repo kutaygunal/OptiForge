@@ -6,7 +6,7 @@ design to the requested EFL and then locally optimizes the shape while holding
 the EFL fixed, so these are genuinely *sensible* starting points rather than
 arbitrary glass stacks.
 
-Stored geometry is validated by aistart/seqparse against the CODE V .seq
+Stored geometry is validated by optiforge/seqparse against the .seq
 dialect.
 """
 from __future__ import annotations
@@ -33,7 +33,10 @@ class Prototype:
     suggested_na: float = 0.0    # object-side NA for finite conjugates
     fov_range: Tuple[float, float] = (0.0, 0.0)   # half-field angle range
     fno_range: Tuple[float, float] = (0.0, 0.0)
-    bfl_ratio: float = 1.0        # target back focal length / EFL
+    # Target back focal length / EFL.  Left at 0 it is measured from the
+    # prescription itself by _resolve_bfl_ratios() below, which keeps the
+    # optimizer from fighting the form's own natural back focus.
+    bfl_ratio: float = 0.0
 
 
 def build(p: Prototype) -> Design:
@@ -51,7 +54,7 @@ def _gl(ids: str) -> str:
 
 
 # ===========================================================================
-# 1. Double Gauss  (photographic standard; values from a real CODE V file)
+# 1. Double Gauss  (photographic standard; values from a published prescription)
 # ===========================================================================
 double_gauss = Prototype(
     id="double_gauss",
@@ -70,7 +73,6 @@ double_gauss = Prototype(
     stop=6,
     fov_range=(30.0, 60.0),
     fno_range=(1.4, 4.0),
-    bfl_ratio=1.25
 )
 
 # ===========================================================================
@@ -88,7 +90,6 @@ cooke_triplet = Prototype(
     stop=4,
     fov_range=(30.0, 55.0),
     fno_range=(3.5, 8.0),
-    bfl_ratio=1.8
 )
 
 # ===========================================================================
@@ -106,7 +107,6 @@ telephoto = Prototype(
     stop=1,
     fov_range=(10.0, 35.0),
     fno_range=(2.8, 5.6),
-    bfl_ratio=0.9
 )
 
 # ===========================================================================
@@ -124,7 +124,6 @@ retrofocus = Prototype(
     stop=5,
     fov_range=(55.0, 110.0),
     fno_range=(2.8, 5.6),
-    bfl_ratio=2.2
 )
 
 # ===========================================================================
@@ -142,7 +141,6 @@ petzval = Prototype(
     stop=3,
     fov_range=(5.0, 25.0),
     fno_range=(1.4, 2.8),
-    bfl_ratio=1.1
 )
 
 # ===========================================================================
@@ -180,7 +178,6 @@ collimator = Prototype(
     stop=2,
     fov_range=(0.5, 8.0),
     fno_range=(1.4, 3.0),
-    bfl_ratio=1.0
 )
 
 CATALOG: dict = {
@@ -193,3 +190,34 @@ def get(pid: str) -> Prototype:
     if pid not in CATALOG:
         raise KeyError(f"unknown prototype '{pid}'")
     return CATALOG[pid]
+
+
+def _resolve_bfl_ratios() -> None:
+    """Measure each prototype's own back-focal ratio from its prescription.
+
+    The optimizer pulls the back focus toward bfl_ratio * EFL.  Deriving that
+    ratio from the stored prescription (rather than declaring it by hand) means
+    the target can never drift out of step with the geometry: the form keeps
+    the back focus it was designed with, and the user's image-clearance goal is
+    what moves it.
+    """
+    from . import optics
+
+    for p in CATALOG.values():
+        if p.bfl_ratio:
+            continue
+        if p.finite:
+            p.bfl_ratio = 1.0
+            continue
+        d = build(p)
+        try:
+            rt = optics.trace(d, epd=p.f0 / 4.0, field_angle_deg=1.0)
+            if rt.efl > 0 and rt.bfl > 0:
+                p.bfl_ratio = rt.bfl / rt.efl
+            else:
+                p.bfl_ratio = 1.0
+        except Exception:
+            p.bfl_ratio = 1.0
+
+
+_resolve_bfl_ratios()

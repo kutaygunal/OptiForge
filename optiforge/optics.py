@@ -108,11 +108,21 @@ def trace(design: Design, epd: float = 0.0, field_angle_deg: float = 0.0,
         yB, VB = _fwd_trace(design, 1, 0.0, 1.0)   # chief basis (unit angle)
         if epd is None or epd <= 0:
             raise ValueError("epd required for infinite conjugate")
+        # The entrance pupil is an OBJECT-SPACE quantity: a ray from an axial
+        # point at infinity that grazes the edge of the entrance pupil travels
+        # parallel to the axis at height EPD/2 and therefore arrives at the
+        # first surface at that height.  Normalizing on the stop instead would
+        # set the *stop* diameter to EPD and trace the system at whatever
+        # (much faster) aperture that implies.
+        h_ep = yA[1]
+        if abs(h_ep) < 1e-12:
+            raise ValueError("degenerate marginal ray at the first surface")
+        k = (epd / 2.0) / h_ep
+        ym, Vm = k * yA, k * VA
+        # the chief ray is the one through the centre of the stop
         h1 = yA[stop]
         if abs(h1) < 1e-12:
             raise ValueError("stop has zero marginal height (invalid design)")
-        k = (epd / 2.0) / h1
-        ym, Vm = k * yA, k * VA
         h2 = yB[stop]
         fac = h2 / h1
         th = math.radians(field_angle_deg)
@@ -180,7 +190,26 @@ class Seidel:
 
 
 def seidel(rt: RayTrace, design: Design) -> Seidel:
-    """Compute third-order + chromatic coefficients from a RayTrace."""
+    """Compute third-order + chromatic coefficients from a RayTrace.
+
+    Classical surface-by-surface Seidel sums (Welford, *Aberrations of Optical
+    Systems*), written in the reduced-angle variables the tracer works in
+    (V = n*u):
+
+        A  = n (u + y c)   = V  + n y c        marginal angle of incidence
+        Ab = n (ub + yb c) = Vb + n yb c       chief angle of incidence
+        D  = u'/n' - u/n   = V'/n'^2 - V/n^2   the refraction invariant jump
+
+        S_I   = A^2 y D          spherical
+        S_II  = A Ab y D         coma
+        S_III = Ab^2 y D         astigmatism
+        S_IV  = H^2 c (1/n' - 1/n)   Petzval
+        S_V   = (Ab/A) (S_III + S_IV)   distortion
+
+    The (Ab/A) factor of S_V is a removable singularity: where the marginal
+    ray is concentric with a surface (A -> 0) the bracket vanishes too, so the
+    contribution is taken as zero there.
+    """
     y = rt.y
     yb = rt.y_b
     V = rt.V_m
@@ -190,27 +219,35 @@ def seidel(rt: RayTrace, design: Design) -> Seidel:
     na = rt.n_after
     H = rt.optical_invariant
 
+    # scale for the "is A negligible" test: a typical angle of incidence
+    a_scale = max(float(np.max(np.abs(V))), 1e-9)
+
     s1 = s2 = s3 = s4 = s5 = 0.0
     nreal = len(y)
     for i in range(1, nreal - 1):
         h = y[i]
         hbar = yb[i]
         c = curv[i]
-        if abs(c) < 1e-12:
-            continue
-        u = V[i]
-        ub = Vb[i]
-        A = u + h * c
-        Ab = ub + hbar * c
-        dnu = -h * (na[i] - nb[i]) * c
-        if abs(A) < 1e-12:
-            continue
-        s1 += A * A * h * dnu
-        s2 += A * Ab * h * dnu
-        s3 += Ab * Ab * h * dnu
-        petz = H * H * c * (1.0 / nb[i] - 1.0 / na[i]) if nb[i] != na[i] else 0.0
-        s4 += petz
-        s5 += (Ab * Ab * Ab / A) * h * dnu + Ab * petz
+        n1 = nb[i]
+        n2 = na[i]
+        # reduced angle after refraction at this surface
+        V2 = V[i] - h * (n2 - n1) * c
+        Vb2 = Vb[i] - hbar * (n2 - n1) * c
+        A = V[i] + n1 * h * c
+        Ab = Vb[i] + n1 * hbar * c
+        D = V2 / (n2 * n2) - V[i] / (n1 * n1)      # u'/n' - u/n
+
+        si1 = A * A * h * D
+        si2 = A * Ab * h * D
+        si3 = Ab * Ab * h * D
+        si4 = H * H * c * (1.0 / n2 - 1.0 / n1) if n1 != n2 else 0.0
+        s1 += si1
+        s2 += si2
+        s3 += si3
+        s4 += si4
+        if abs(A) > 1e-6 * a_scale:
+            s5 += (Ab / A) * (si3 + si4)
+        # else: removable singularity, (si3 + si4) -> 0 with A
 
     lch, tch = _chromatic(design, rt)
 

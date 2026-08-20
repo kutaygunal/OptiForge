@@ -1,0 +1,15 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "optiforge-web",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "optiforge.webapp"
+      ],
+      "port": 5000,
+      "autoPort": true
+    }
+  ]
+}

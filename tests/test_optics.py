@@ -1,10 +1,10 @@
-"""Unit tests for the paraxial/Seidel engine using a real CODE V double-Gauss."""
+"""Unit tests for the paraxial/Seidel engine using a classic double-Gauss prescription."""
 import math
 import sys, os
 import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from aistart.design import Design
-from aistart import optics
+from optiforge.design import Design
+from optiforge import optics
 
 
 def make_double_gauss():
@@ -39,9 +39,33 @@ def test_scale_invariance():
     assert abs(rt2.efl / rt.efl - k) < 1e-6
 
 
-def test_seidel_nonzero_for_singlet_like():
+def test_entrance_pupil_sets_marginal_ray_height():
+    """EPD is an object-space quantity: the marginal ray enters at EPD/2.
+
+    Normalizing on the stop instead would trace the system at whatever
+    (much faster) aperture the stop implies.
+    """
+    d = make_double_gauss()
+    for epd in (50.0, 25.0):
+        rt = optics.trace(d, epd=epd, field_angle_deg=10.0)
+        assert abs(rt.y[1] - epd / 2.0) < 1e-9, rt.y[1]
+
+
+def test_chief_ray_passes_through_the_stop():
+    d = make_double_gauss()
+    rt = optics.trace(d, epd=50.0, field_angle_deg=10.0)
+    assert abs(rt.y_b[d.stop]) < 1e-9, rt.y_b[d.stop]
+
+
+def test_seidel_balance_of_a_real_double_gauss():
+    """The stock double Gauss must look like a corrected f/2 objective."""
     d = make_double_gauss()
     rt = optics.trace(d, epd=50.0, field_angle_deg=10.0)
     sd = optics.seidel(rt, d)
-    # a real double-Gauss has a non-trivial aberration balance (not all zero)
-    assert abs(sd.s1) > 1.0
+    # a non-trivial balance, but a corrected one: third-order spherical is a
+    # residual, not a blunder
+    assert 1e-3 < abs(sd.s1) < 1.0, sd.s1
+    # the symmetric form very nearly nulls coma
+    assert abs(sd.s2) < 0.05 * abs(sd.s1), sd.s2
+    # Petzval is negative (inward-curving field) for this form
+    assert sd.s4 < 0, sd.s4

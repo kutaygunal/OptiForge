@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>OptiForge</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#2a3242;
+    --txt:#e6edf3; --mut:#8b949e; --acc:#4f9cf9; --acc2:#7ee787; --red:#f85149;
+    --amber:#d29922;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font:13px/1.5 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1680px;margin:0 auto;padding:22px 18px 70px}
+  header{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:18px;
+         display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap}
+  h1{margin:0;font-size:23px;letter-spacing:.3px}
+  h1 .dot{color:var(--acc2)}
+  .sub{color:var(--mut);margin-top:3px;max-width:820px}
+  .badge{display:inline-block;background:#12300f;color:var(--acc2);border:1px solid #2f5b2a;
+         border-radius:20px;padding:2px 10px;font-size:12px;margin-left:auto;white-space:nowrap}
+
+  .layoutgrid{display:grid;grid-template-columns:360px minmax(0,1fr);gap:18px;align-items:start}
+  @media(max-width:1180px){.layoutgrid{grid-template-columns:1fr}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .card h2{margin:0 0 12px;font-size:13px;color:var(--mut);font-weight:600;
+           text-transform:uppercase;letter-spacing:.6px}
+  .dialog{position:sticky;top:14px}
+  fieldset{border:1px solid var(--line);border-radius:8px;padding:10px 12px 14px;margin:0 0 14px}
+  legend{color:var(--acc);font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:0 6px}
+  .fld{display:flex;align-items:center;gap:8px;margin:8px 0}
+  .fld label{flex:1;color:var(--mut);font-size:12px}
+  .fld input,.fld select{width:118px;background:var(--bg);color:var(--txt);
+      border:1px solid var(--line);border-radius:5px;padding:5px 7px;font-size:12.5px}
+  .fld.wide select,.fld.wide input{width:170px}
+  input:focus,select:focus{outline:none;border-color:var(--acc)}
+  input:disabled{opacity:.38}
+  .fld.chk label{flex:1;color:var(--txt)}
+  input[type=checkbox]{width:auto;accent-color:var(--acc);margin:0 2px 0 0}
+  .pair{display:flex;gap:8px}
+  .pair > div{flex:1}
+  .pair small{display:block;color:var(--mut);font-size:11px;margin-bottom:3px}
+  .pair input{width:100%}
+  .indent{margin-left:22px}
+  .btn{width:100%;background:var(--acc);border:none;color:#0b1526;font-weight:600;
+       border-radius:6px;padding:11px;font-size:14px;cursor:pointer;margin-top:4px}
+  .btn:hover{filter:brightness(1.08)}
+  .btn:disabled{opacity:.5;cursor:default}
+  .btn.ghost{background:transparent;color:var(--mut);border:1px solid var(--line);
+             font-weight:500;padding:7px;font-size:12.5px;margin-top:8px}
+  .btn.ghost:hover{color:var(--txt);border-color:var(--acc)}
+  .field-hidden{display:none}
+
+  /* summary table */
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+  table.summary{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap}
+  table.summary th{background:var(--panel2);color:var(--mut);font-weight:600;
+      padding:8px 9px;text-align:right;border-bottom:1px solid var(--line);
+      position:sticky;top:0;cursor:pointer;user-select:none;line-height:1.25;vertical-align:bottom}
+  table.summary th .u{display:block;font-weight:400;font-size:10.5px;opacity:.75}
+  table.summary th:hover{color:var(--txt)}
+  table.summary th.sorted{color:var(--acc)}
+  table.summary th.left,table.summary td.left{text-align:left}
+  table.summary td{padding:6px 9px;text-align:right;border-bottom:1px solid var(--line);
+      font-variant-numeric:tabular-nums}
+  table.summary tr.goals td{background:#12202f;color:var(--acc2);font-weight:600;
+      border-bottom:2px solid var(--line)}
+  table.summary tr.sys{cursor:pointer}
+  table.summary tr.sys:hover td{background:#1d2735}
+  table.summary tr.sys.sel td{background:#233046;box-shadow:inset 2px 0 0 var(--acc)}
+  td.thumb{padding:2px 6px}
+  td.thumb img{height:44px;display:block;border-radius:3px;background:#fff}
+  .nm{font-weight:600}
+  .flag{color:var(--amber);margin-left:5px}
+  .cellbar{display:inline-block;padding:1px 6px;border-radius:4px}
+
+  .meta{display:flex;gap:14px;color:var(--mut);font-size:12px;margin:10px 2px;flex-wrap:wrap;
+        align-items:center}
+  .meta .grow{flex:1}
+  .lnk{color:var(--acc);cursor:pointer;text-decoration:none}
+  .lnk:hover{text-decoration:underline}
+
+  /* detail */
+  .detail{margin-top:18px}
+  .detail .cols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px}
+  @media(max-width:1000px){.detail .cols{grid-template-columns:1fr}}
+  .layoutimg img{width:100%;border-radius:8px;background:#fff;border:1px solid var(--line)}
+  table.kv{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.kv td,table.kv th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left}
+  table.kv th{color:var(--mut);font-weight:500}
+  table.kv td.num{text-align:right;font-family:ui-monospace,Consolas,monospace}
+  .ok{color:var(--acc2)} .bad{color:var(--red)} .warn{color:var(--amber)}
+  pre{background:#0b0f14;border:1px solid var(--line);border-radius:8px;padding:12px;
+      overflow:auto;font-size:11.5px;max-height:330px;margin:0}
+  .seqbar{display:flex;gap:8px;margin-bottom:9px;flex-wrap:wrap}
+  .seqbar button{background:var(--panel);color:var(--txt);border:1px solid var(--line);
+       border-radius:6px;padding:6px 11px;cursor:pointer;font-size:12px}
+  .seqbar button:hover{border-color:var(--acc)}
+  .err{background:#2d1418;border:1px solid #5b2a2a;color:#ffb4ae;border-radius:8px;
+       padding:11px;display:none;margin-bottom:12px}
+  .spinner{display:none;text-align:center;color:var(--mut);padding:44px 20px}
+  .spinner .s{display:inline-block;width:24px;height:24px;border:3px solid var(--line);
+      border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite;
+      vertical-align:middle;margin-right:10px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .empty{color:var(--mut);text-align:center;padding:46px 20px}
+  footer{margin-top:34px;color:var(--mut);font-size:11.5px;text-align:center;
+         border-top:1px solid var(--line);padding-top:14px}
+  .note{color:var(--mut);font-size:11.5px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>OptiForge <span class="dot">●</span></h1>
+      <div class="sub">Give the first-order targets and the goals that matter; get a set of
+        viable starting-point lens designs, each ready to load with
+        <code>IN &lt;file&gt;</code> and refine.</div>
+    </div>
+    <div class="badge">&#128274; On-premise — no internet, runs entirely on your machine</div>
+  </header>
+
+  <div class="err" id="err"></div>
+
+  <div class="layoutgrid">
+    <!-- ============ specification dialog ============ -->
+    <div class="card dialog">
+      <h2>Specification</h2>
+
+      <fieldset>
+        <legend>Basic lens properties</legend>
+        <div class="fld wide"><label>Desired System Units</label>
+          <select id="units">
+            <option value="mm" selected>Millimeters</option>
+            <option value="cm">Centimeters</option>
+            <option value="in">Inches</option>
+          </select></div>
+        <div class="fld"><label>Effective Focal Length</label>
+          <input id="efl" type="number" step="any" value="35"/></div>
+        <div class="fld wide"><label>Pupil Specification</label>
+          <select id="apkind">
+            <option value="fno" selected>F/Number</option>
+            <option value="epd">Entrance Pupil Diameter</option>
+            <option value="na">Numerical Aperture</option>
+          </select></div>
+        <div class="fld"><label>&nbsp;</label>
+          <input id="apval" type="number" step="any" value="2.0"/></div>
+        <div class="fld"><label>Semi-Field Angle (degrees)</label>
+          <input id="semifield" type="number" step="any" value="30"/></div>
+        <div class="pair" style="margin-top:10px">
+          <div><small>Wavelength Long (nm)</small><input id="wllong" type="number" step="any" value="650"/></div>
+          <div><small>Wavelength Short (nm)</small><input id="wlshort" type="number" step="any" value="450"/></div>
+        </div>
+        <div class="fld wide" style="margin-top:12px"><label>Starting lens form</label>
+          <select id="type">
+            <option value="auto" selected>Auto (search all forms)</option>
+            <option value="double_gauss">Camera / double Gauss</option>
+            <option value="cooke_triplet">Cooke triplet</option>
+            <option value="telephoto">Telephoto</option>
+            <option value="retrofocus">Retrofocus (wide angle)</option>
+            <option value="petzval">Petzval (projector)</option>
+            <option value="collimator">Collimator / projector</option>
+            <option value="microscope">Microscope objective</option>
+          </select></div>
+        <div class="field-hidden" id="microgroup">
+          <div class="fld"><label>Working distance</label>
+            <input id="objdist" type="number" step="any" value="1.0"/></div>
+          <div class="fld"><label>Object field height</label>
+            <input id="objheight" type="number" step="any" value="0.1"/></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Optional lens properties</legend>
+        <div class="fld chk"><input type="checkbox" id="use_pkg" checked/>
+          <label for="use_pkg">Maximum Package Length</label>
+          <input id="pkg" type="number" step="any" value="250"/></div>
+        <div class="fld chk"><input type="checkbox" id="use_clr" checked/>
+          <label for="use_clr">Minimum Image Clearance</label>
+          <input id="clr" type="number" step="any" value="22"/></div>
+        <div class="fld chk"><input type="checkbox" id="use_dist" checked/>
+          <label for="use_dist">Maximum Distortion (%, +/-)</label>
+          <input id="dist" type="number" step="any" value="1.0"/></div>
+        <div class="fld chk"><input type="checkbox" id="use_cra"/>
+          <label for="use_cra">Chief Ray Angle at Image at Max Field</label></div>
+        <div class="indent">
+          <div class="fld"><label>Target (degrees)</label>
+            <input id="cra" type="number" step="any" value="0" disabled/></div>
+          <div class="fld"><label>Tolerance (degrees, +/-)</label>
+            <input id="cratol" type="number" step="any" value="10" disabled/></div>
+        </div>
+        <div class="fld chk" style="margin-top:12px"><input type="checkbox" id="use_emin" checked/>
+          <label for="use_emin">Minimum Number of Elements</label>
+          <input id="emin" type="number" step="1" value="4"/></div>
+        <div class="fld chk"><input type="checkbox" id="use_emax" checked/>
+          <label for="use_emax">Maximum Number of Elements</label>
+          <input id="emax" type="number" step="1" value="8"/></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>OptiForge options</legend>
+        <div class="fld"><label>Number of Desired Systems</label>
+          <input id="nsys" type="number" step="1" min="1" max="20" value="10"/></div>
+        <div class="fld"><label>Base File Name</label>
+          <input id="basename" type="text" value="Camera"/></div>
+      </fieldset>
+
+      <button class="btn" id="go">Generate starting points</button>
+      <button class="btn ghost" id="reset">Reset to defaults</button>
+      <div class="note">Aberrations are third-order (Seidel) estimates used to rank
+        starting points — a full ray trace does the exact analysis.</div>
+    </div>
+
+    <!-- ============ results ============ -->
+    <div>
+      <div class="card">
+        <h2>OptiForge summary</h2>
+        <div class="spinner" id="spinner"><span class="s"></span><span id="spintxt">searching starting points…</span></div>
+        <div class="empty" id="empty">Set your specification and press
+          <b>Generate starting points</b>.</div>
+        <div id="results" style="display:none">
+          <div class="tablewrap">
+            <table class="summary" id="tbl">
+              <thead id="thead"></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+          <div class="meta">
+            <span id="stats"></span>
+            <span class="grow"></span>
+            <a class="lnk" id="dlall">Download all (.zip)</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card detail" id="detail" style="display:none">
+        <h2 id="detailtitle">System</h2>
+        <div class="cols">
+          <div>
+            <div class="layoutimg" id="layout"></div>
+            <table class="kv" id="surftab" style="margin-top:14px"></table>
+          </div>
+          <div>
+            <table class="kv" id="fotab"></table>
+            <table class="kv" id="seideltab" style="margin-top:14px"></table>
+          </div>
+        </div>
+        <h2 style="margin-top:18px">Lens sequence (.seq)</h2>
+        <div class="seqbar">
+          <button id="dld">Download .seq</button>
+          <button id="copy">Copy to clipboard</button>
+          <span id="seqstate" style="align-self:center"></span>
+        </div>
+        <pre id="seq"></pre>
+        <div class="note">Load it in your optical design software: <code>IN &lt;filename&gt;</code>, then run your usual
+          optimization on the starting point.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>OptiForge — local generative starting-point lens design. Emits standard lens sequence (.seq) files.</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let STATE={rows:[],goals:{},unit:"mm",sortKey:"score",sortDir:1,sel:null,seq:""};
+
+/* ---------- column model: mirrors the OptiForge summary ---------- */
+function columns(u){
+  return [
+    {key:"name",       label:"Name",              unit:"",       type:"text"},
+    {key:"thumb",      label:"",                  unit:"",       type:"thumb"},
+    {key:"epd",        label:"Ent. Pupil Diam.",  unit:u,        dec:4, goal:"epd",             gkind:"target"},
+    {key:"semi_field", label:"Semi Field Angle",  unit:"deg",    dec:4, goal:"semi_field_deg",  gkind:"target"},
+    {key:"efl",        label:"Eff. Focal Length", unit:u,        dec:4, goal:"efl",             gkind:"target"},
+    {key:"wl_short",   label:"Short Wavelength",  unit:"nm",     dec:1, goal:"wl_short",        gkind:"target"},
+    {key:"wl_long",    label:"Long Wavelength",   unit:"nm",     dec:1, goal:"wl_long",         gkind:"target"},
+    {key:"package_length",  label:"Package Length",   unit:u,   dec:4, goal:"package_length",  gkind:"max"},
+    {key:"image_clearance", label:"Image Clearance",  unit:u,   dec:4, goal:"image_clearance", gkind:"min"},
+    {key:"cra_deg",    label:"Chief Ray Angle",   unit:"deg",    dec:4, goal:"cra_deg",         gkind:"tol"},
+    {key:"distortion_pct", label:"Distortion",    unit:"%",      dec:4, goal:"distortion_pct",  gkind:"max"},
+    {key:"rel_illum_pct",  label:"Min. Rel. Illum.", unit:"%",   dec:4, gkind:"high"},
+    {key:"avg_spot_diam",  label:"Avg. Spot Diam.",  unit:u,     dec:4, gkind:"low"},
+    {key:"elem_count", label:"Elem. Count",       unit:"",       dec:0, gkind:"range"},
+  ];
+}
+function cellValue(row,key){
+  if(key==="name") return row.name;
+  if(key==="semi_field") return row.semi_field_deg;
+  if(key==="wl_short") return row.wl_short;
+  if(key==="wl_long") return row.wl_long;
+  if(key==="score") return row.score;
+  const v=row.metrics[key];
+  return (v===undefined?null:v);
+}
+function fmt(v,dec){
+  if(v===null||v===undefined) return "—";
+  if(dec===0) return String(Math.round(v));
+  return Number(v).toFixed(dec===undefined?4:dec);
+}
+
+/* ---------- heat map: how each cell stands against the goal ---------- */
+function shade(col,row){
+  const g=STATE.goals, v=cellValue(row,col.key);
+  if(v===null||v===undefined||col.type) return "";
+  let t=null;                    // 0 = comfortable, 1 = right at the limit, >1 = violated
+  if(col.gkind==="max" && g[col.goal]!==null && g[col.goal]!==undefined){
+    t=v/g[col.goal];
+  }else if(col.gkind==="min" && g[col.goal]!==null && g[col.goal]!==undefined){
+    t=g[col.goal]>0? g[col.goal]/Math.max(v,1e-9) : null;
+  }else if(col.gkind==="tol" && g.cra_deg!==null && g.cra_deg!==undefined){
+    const tol=g.cra_tolerance||1;
+    t=Math.abs(v-g.cra_deg)/tol;
+  }else if(col.gkind==="range" && (g.elem_min!==null||g.elem_max!==null)){
+    const lo=g.elem_min, hi=g.elem_max;
+    if((lo!==null&&v<lo)||(hi!==null&&v>hi)) t=1.35; else t=0.45;
+  }else if(col.gkind==="target" && g[col.goal]!==null && g[col.goal]!==undefined){
+    const tgt=g[col.goal]||1;
+    t=Math.abs(v-tgt)/Math.abs(tgt)*40;      // first-order targets are exact
+  }else{
+    // no goal: rank the column so the best value reads brightest
+    const vals=STATE.rows.map(r=>cellValue(r,col.key)).filter(x=>x!==null);
+    if(!vals.length) return "";
+    const lo=Math.min(...vals), hi=Math.max(...vals);
+    if(hi-lo<1e-12) return "";
+    let f=(v-lo)/(hi-lo);
+    if(col.gkind==="high") f=1-f;            // more illumination is better
+    t=0.25+0.85*f;
+  }
+  if(t===null) return "";
+  t=Math.max(0,Math.min(1.35,t));
+  const hue=t<=1 ? 140-95*t : 0;             // green -> amber -> red
+  const sat=t<=1 ? 34+26*t : 62;
+  const light=t<=1 ? 15+7*t : 27;
+  const fg=t>1 ? "#ffd9d4" : "";
+  return `background:hsl(${hue.toFixed(0)},${sat.toFixed(0)}%,${light.toFixed(0)}%);`+
+         (fg?`color:${fg};`:"");
+}
+
+/* ---------- rendering ---------- */
+function renderTable(){
+  const cols=columns(STATE.unit), g=STATE.goals;
+  const thead=$("thead"), tbody=$("tbody");
+  thead.innerHTML="<tr>"+cols.map(c=>{
+    const cls=(c.type==="text"||c.type==="thumb")?"left":"";
+    const sorted=(STATE.sortKey===c.key)?" sorted":"";
+    const arrow=(STATE.sortKey===c.key)?(STATE.sortDir>0?" ▲":" ▼"):"";
+    const unit=c.unit?`<span class="u">(${c.unit})</span>`:"";
+    return `<th class="${cls}${sorted}" data-k="${c.key}">${c.label}${arrow}${unit}</th>`;
+  }).join("")+"</tr>";
+
+  // goals row
+  const gcell=c=>{
+    if(c.key==="name") return `<td class="left nm">Goals</td>`;
+    if(c.type==="thumb") return `<td></td>`;
+    if(c.key==="elem_count"){
+      const lo=g.elem_min, hi=g.elem_max;
+      return `<td>${(lo!==null||hi!==null)?`[${lo!==null?lo:"–"}, ${hi!==null?hi:"–"}]`:"—"}</td>`;
+    }
+    if(c.key==="cra_deg" && g.cra_deg!==null && g.cra_deg!==undefined)
+      return `<td>${fmt(g.cra_deg,c.dec)} ±${fmt(g.cra_tolerance,2)}</td>`;
+    const v=(c.goal!==undefined)?g[c.goal]:null;
+    return `<td>${(v===null||v===undefined)?"—":fmt(v,c.dec)}</td>`;
+  };
+  let html=`<tr class="goals">${cols.map(gcell).join("")}</tr>`;
+
+  const rows=[...STATE.rows].sort((a,b)=>{
+    const k=STATE.sortKey;
+    let av=cellValue(a,k), bv=cellValue(b,k);
+    if(typeof av==="string") return STATE.sortDir*av.localeCompare(bv);
+    if(av===null) av=Infinity; if(bv===null) bv=Infinity;
+    return STATE.sortDir*(av-bv);
+  });
+
+  for(const r of rows){
+    const sel=(STATE.sel===r.index)?" sel":"";
+    html+=`<tr class="sys${sel}" data-i="${r.index}">`+cols.map(c=>{
+      if(c.key==="name")
+        return `<td class="left nm">${r.name}${r.meets_goals?"":'<span class="flag" title="a goal is not met">▲</span>'}</td>`;
+      if(c.type==="thumb")
+        return `<td class="left thumb"><img src="${r.thumb}" alt="${r.name} layout"/></td>`;
+      const v=cellValue(r,c.key);
+      return `<td style="${shade(c,r)}">${fmt(v,c.dec)}</td>`;
+    }).join("")+"</tr>";
+  }
+  tbody.innerHTML=html;
+
+  thead.querySelectorAll("th").forEach(th=>{
+    th.addEventListener("click",()=>{
+      const k=th.dataset.k;
+      if(k==="thumb") return;
+      if(STATE.sortKey===k) STATE.sortDir*=-1; else {STATE.sortKey=k;STATE.sortDir=1;}
+      renderTable();
+    });
+  });
+  tbody.querySelectorAll("tr.sys").forEach(tr=>{
+    tr.addEventListener("click",()=>openDetail(parseInt(tr.dataset.i,10)));
+  });
+}
+
+async function openDetail(i){
+  STATE.sel=i; renderTable();
+  const r=await fetch("/api/detail/"+i);
+  const j=await r.json();
+  if(!j.ok){showErr(j.error);return;}
+  STATE.seq=j.seq;
+  $("detail").style.display="block";
+  $("detailtitle").textContent=`${j.name} — ${j.description}`;
+  $("layout").innerHTML=`<img src="${j.layout}" alt="lens layout"/>`;
+  $("seq").textContent=j.seq;
+  $("seqstate").innerHTML=j.seq_valid
+    ? '<span class="ok">round-trip validated</span>'
+    : '<span class="bad">round-trip failed</span>';
+
+  const m=j.metrics, u=STATE.unit;
+  const gs=j.goal_status;
+  const gmark=k=>gs[k]?(gs[k].met?'<span class="ok">✓</span>':'<span class="bad">✗</span>'):"";
+  $("fotab").innerHTML=`<tr><th>Quantity</th><th class="num">Value</th><th></th></tr>`+
+    [["Effective focal length",m.efl,u,"efl"],
+     ["F/number",m.fno,"","fno"],
+     ["Entrance pupil diameter",m.epd,u,""],
+     ["Image height",m.image_height,u,""],
+     ["Package length",m.package_length,u,"package_length"],
+     ["Image clearance",m.image_clearance,u,"image_clearance"],
+     ["Chief ray angle at image",m.cra_deg,"deg","cra_deg"],
+     ["Distortion",m.distortion_pct,"%","distortion_pct"],
+     ["Min. relative illumination",m.rel_illum_pct,"%",""],
+     ["Avg. spot diameter",m.avg_spot_diam,u,""],
+     ["Element count",m.elem_count,"","elem_count"]]
+    .map(([k,v,uu,gk])=>`<tr><td>${k}</td><td class="num">${fmt(v,k==="Element count"?0:4)}${uu?" "+uu:""}</td><td>${gmark(gk)}</td></tr>`).join("");
+
+  const s=j.seidel;
+  $("seideltab").innerHTML=`<tr><th>Third-order (Seidel)</th><th class="num">Value</th></tr>`+
+    [["Spherical (S1)",s.S1],["Coma (S2)",s.S2],["Astigmatism (S3)",s.S3],
+     ["Field curvature (S4)",s.S4],["Distortion (S5)",s.S5],
+     ["Axial color",s.LCH],["Lateral color",s.TCH]]
+    .map(([k,v])=>`<tr><td>${k}</td><td class="num">${Number(v).toExponential(3)}</td></tr>`).join("");
+
+  $("surftab").innerHTML=`<tr><th>#</th><th class="num">Radius</th><th class="num">Thickness</th><th>Glass</th></tr>`+
+    j.surfaces.map(sf=>`<tr><td>${sf.i}${sf.stop?' <span class="warn">STOP</span>':""}</td>`+
+      `<td class="num">${sf.radius===null?"INF":sf.radius.toFixed(4)}</td>`+
+      `<td class="num">${sf.thick.toFixed(4)}</td><td>${sf.glass}</td></tr>`).join("");
+
+  $("dld").onclick=()=>{window.location="/api/seq/"+i;};
+  $("detail").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function showErr(msg){$("err").textContent="Error: "+msg;$("err").style.display="block";}
+
+/* ---------- run ---------- */
+function payload(){
+  // a working distance is only meaningful for a finite conjugate: sending the
+  // hidden microscope fields would switch the whole search to finite mode
+  const micro=$("type").value==="microscope";
+  return {
+    efl:parseFloat($("efl").value)||35,
+    semi_field_deg:parseFloat($("semifield").value)||20,
+    aperture:$("apkind").value,
+    aperture_value:parseFloat($("apval").value),
+    lens_type:$("type").value,
+    units:$("units").value,
+    wl_long:parseFloat($("wllong").value)||650,
+    wl_short:parseFloat($("wlshort").value)||450,
+    use_package_length:$("use_pkg").checked,
+    package_length_max:parseFloat($("pkg").value)||0,
+    use_image_clearance:$("use_clr").checked,
+    min_image_clearance:parseFloat($("clr").value)||0,
+    use_distortion:$("use_dist").checked,
+    distortion_max:parseFloat($("dist").value)||0,
+    use_cra:$("use_cra").checked,
+    cra_target:parseFloat($("cra").value)||0,
+    cra_tolerance:parseFloat($("cratol").value)||0,
+    use_elem_min:$("use_emin").checked,
+    elem_min:parseInt($("emin").value,10)||1,
+    use_elem_max:$("use_emax").checked,
+    elem_max:parseInt($("emax").value,10)||99,
+    n_systems:parseInt($("nsys").value,10)||10,
+    base_name:$("basename").value||"Lens",
+    object_distance:micro?(parseFloat($("objdist").value)||0):0,
+    object_height:micro?(parseFloat($("objheight").value)||0):0,
+  };
+}
+
+async function run(){
+  $("err").style.display="none";
+  $("empty").style.display="none";
+  $("results").style.display="none";
+  $("detail").style.display="none";
+  $("spinner").style.display="block";
+  $("go").disabled=true;
+  const t0=Date.now();
+  const tick=setInterval(()=>{
+    $("spintxt").textContent=`searching starting points… ${((Date.now()-t0)/1000).toFixed(0)}s`;
+  },500);
+  try{
+    const r=await fetch("/api/generate_systems",
+      {method:"POST",headers:{"Content-Type":"application/json"},
+       body:JSON.stringify(payload())});
+    const j=await r.json();
+    if(!j.ok){showErr(j.error||"generation failed");$("empty").style.display="block";return;}
+    STATE.rows=j.rows; STATE.goals=j.goals; STATE.unit=j.units;
+    STATE.sortKey="score"; STATE.sortDir=1; STATE.sel=null;
+    renderTable();
+    $("stats").textContent=
+      `${j.rows.length} systems from ${j.considered} candidates in ${j.elapsed}s `+
+      `— click a row for the full design`;
+    $("results").style.display="block";
+  }catch(e){
+    showErr(e.message); $("empty").style.display="block";
+  }finally{
+    clearInterval(tick);
+    $("go").disabled=false; $("spinner").style.display="none";
+  }
+}
+
+/* ---------- wiring ---------- */
+$("go").addEventListener("click",run);
+$("dlall").addEventListener("click",()=>{window.location="/api/seq_all";});
+$("copy").addEventListener("click",async()=>{
+  try{await navigator.clipboard.writeText(STATE.seq||"");}catch(e){}
+});
+$("type").addEventListener("change",()=>{
+  $("microgroup").classList.toggle("field-hidden",$("type").value!=="microscope");
+});
+function bindToggle(chk,ids){
+  const f=()=>ids.forEach(i=>{$(i).disabled=!$(chk).checked;});
+  $(chk).addEventListener("change",f); f();
+}
+bindToggle("use_pkg",["pkg"]);
+bindToggle("use_clr",["clr"]);
+bindToggle("use_dist",["dist"]);
+bindToggle("use_cra",["cra","cratol"]);
+bindToggle("use_emin",["emin"]);
+bindToggle("use_emax",["emax"]);
+$("reset").addEventListener("click",()=>window.location.reload());
+</script>
+</body>
+</html>

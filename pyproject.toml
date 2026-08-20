@@ -3,9 +3,9 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "aistart-expert"
+name = "optiforge"
 version = "1.0.0"
-description = "AI Start Expert — local generative starting-point lens design for CODE V (emits .seq files)"
+description = "OptiForge — local generative starting-point lens design (emits .seq files)"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
@@ -19,10 +19,10 @@ web = ["flask>=2.0"]
 dev = ["pytest>=7"]
 
 [tool.setuptools]
-packages = ["aistart"]
+packages = ["optiforge"]
 
 [tool.setuptools.package-data]
-aistart = ["templates/*.html"]
+optiforge = ["templates/*.html"]
 
 [project.scripts]
-aistart = "aistart.cli:main"
+optiforge = "optiforge.cli:main"

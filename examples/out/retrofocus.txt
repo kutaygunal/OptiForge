@@ -1,4 +1,4 @@
-AI Start Expert  —  Retrofocus (wide angle)
+OptiForge  -  Retrofocus (wide angle)
 ====================================================
 Spec: EFL=20 mm  FOV=80 deg  F/#=4
 
@@ -6,18 +6,18 @@ First-order:
   EFL             20.0000 mm
   F/#             4.0000
   Entrance pupil  5.0000 mm
-  Back focal      37.5699 mm
+  Back focal      24.7003 mm
   Image height    16.7820 mm
   Elements        3
 
 Third-order (Seidel) coefficients:
-  S1 spherical        -1.91e-04  (well corrected)
-  S2 coma             -5.90e-04  (well corrected)
-  S3 astigmatism      -5.89e-03  (well corrected)
-  S4 field curvature  -9.10e-03  (well corrected)
-  S5 distortion       3.53e-02  (well corrected)
-  Axial color        8.78e-03  (well corrected)
-  Lateral color      -4.03e-03  (well corrected)
+  S1 spherical        -1.05e-03  (well corrected)
+  S2 coma             -1.17e-02  (well corrected)
+  S3 astigmatism      -7.92e-02  (well corrected)
+  S4 field curvature  -5.37e-02  (well corrected)
+  S5 distortion       -6.94e-03  (well corrected)
+  Axial color        8.52e-03  (well corrected)
+  Lateral color      1.42e-03  (well corrected)
 
-Third-order distortion ~ 0.19 %
-CODE V .seq round-trip: OK
+Third-order distortion ~ 0.20 %
+.seq round-trip: OK
