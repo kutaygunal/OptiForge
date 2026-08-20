@@ -103,7 +103,7 @@ then run your normal optimization on the starting point.
 
 A goal that is switched off contributes nothing to the search or the ranking.
 
-**[Full specification reference →](docs/specification.html)** — every input explained, with an annotated diagram of the quantities they refer to. Open it in a browser.
+**[Full specification reference →](optiforge/static/specification.html)** — every input explained, with an annotated diagram of the quantities they refer to. The web UI links to it from the `?` beside the Specification heading.
 
 ---
 

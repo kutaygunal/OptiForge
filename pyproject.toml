@@ -22,7 +22,7 @@ dev = ["pytest>=7"]
 packages = ["optiforge"]
 
 [tool.setuptools.package-data]
-optiforge = ["templates/*.html"]
+optiforge = ["templates/*.html", "static/*.html"]
 
 [project.scripts]
 optiforge = "optiforge.cli:main"

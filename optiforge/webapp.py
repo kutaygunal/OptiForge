@@ -16,7 +16,8 @@ import math
 import os
 import zipfile
 
-from flask import Flask, Response, jsonify, render_template, request
+from flask import (Flask, Response, jsonify, render_template, request,
+                   send_from_directory)
 
 from . import generate, generator, metrics, report
 from .specs import LENS_TYPE_LABELS, UNITS, Spec
@@ -118,6 +119,12 @@ def _clean(v):
 # ---------------------------------------------------------------------------
 # Pages
 # ---------------------------------------------------------------------------
+@app.route("/specification")
+def specification():
+    """The specification reference, opened from the help link on the panel."""
+    return send_from_directory(app.static_folder, "specification.html")
+
+
 @app.route("/")
 def index():
     return render_template("index.html",
